@@ -4,7 +4,7 @@ import { OnDestroy } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngrx/store';
-import { articleActions, articleEditActions, articleQuery } from '@realworld/articles/data-access';
+import { articleEditActions, articleQuery } from '@realworld/articles/data-access';
 
 const structure: Field[] = [
   {
@@ -58,6 +58,9 @@ export class ArticleEditComponent implements OnInit, OnDestroy {
   }
 
   updateForm(changes: any) {
+    if (changes && typeof changes.tagList === 'string') {
+      changes.tagList = changes.tagList.split(',');
+    }
     this.store.dispatch(formsActions.updateData({ data: changes }));
   }
 

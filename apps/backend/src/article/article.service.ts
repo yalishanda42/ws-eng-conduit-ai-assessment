@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager, QueryOrder, wrap } from '@mikro-orm/core';
+import { EntityManager, Filter, QueryOrder, wrap } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository } from '@mikro-orm/mysql';
 
@@ -8,6 +8,7 @@ import { Article } from './article.entity';
 import { IArticleRO, IArticlesRO, ICommentsRO } from './article.interface';
 import { Comment } from './comment.entity';
 import { CreateArticleDto, CreateCommentDto } from './dto';
+import { Tag } from '../tag/tag.entity';
 
 @Injectable()
 export class ArticleService {
@@ -19,6 +20,8 @@ export class ArticleService {
     private readonly commentRepository: EntityRepository<Comment>,
     @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: EntityRepository<Tag>,
   ) {}
 
   async findAll(userId: number, query: Record<string, string>): Promise<IArticlesRO> {
@@ -154,7 +157,25 @@ export class ArticleService {
       { populate: ['followers', 'favorites', 'articles'] },
     );
     const article = new Article(user!, dto.title, dto.description, dto.body);
-    article.tagList.push(...dto.tagList);
+    article.tagList = dto.tagList;
+
+    // create tag entities for each new tag
+    const newTags = (await Promise.all(
+      dto.tagList
+        .map(async (tagString) => {
+          const tagLowercased = tagString.toLowerCase();
+          let tag = await this.tagRepository.findOne({ tag: tagLowercased });
+
+          if (tag) {
+            // tag already exists -> no need to handle it
+            return null;
+          }
+
+          return new Tag(tagLowercased);
+        })
+    )).filter((tag: Tag | null) => tag !== null) as Tag[];
+
+    this.em.persist(newTags);
     user?.articles.add(article);
     await this.em.flush();
 

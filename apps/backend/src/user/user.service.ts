@@ -6,7 +6,7 @@ import { EntityManager, wrap } from '@mikro-orm/core';
 import { SECRET } from '../config';
 import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { User } from './user.entity';
-import { IUserRO } from './user.interface';
+import { IUserRO, IUserStatsRO } from './user.interface';
 import { UserRepository } from './user.repository';
 
 @Injectable()
@@ -15,6 +15,11 @@ export class UserService {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAll();
+  }
+
+  async findAllWithStats(): Promise<IUserStatsRO[]> {
+    const users = await this.userRepository.findAll({ populate: ['articles', 'followers', 'followed']});
+    return users.map((user) => this.buildUserStatsRO(user));
   }
 
   async findOne(loginUserDto: LoginUserDto): Promise<User> {
@@ -103,7 +108,7 @@ export class UserService {
     );
   }
 
-  private buildUserRO(user: User) {
+  private buildUserRO(user: User): IUserRO {
     const userRO = {
       bio: user.bio,
       email: user.email,
@@ -113,5 +118,19 @@ export class UserService {
     };
 
     return { user: userRO };
+  }
+
+  private buildUserStatsRO(user: User): IUserStatsRO {
+    const userRO = {
+      bio: user.bio,
+      email: user.email,
+      image: user.image,
+      username: user.username,
+      followingCount: user.followed.count(),
+      followersCount: user.followers.count(),
+      articlesCount: user.articles.count(),
+    };
+
+    return userRO;
   }
 }

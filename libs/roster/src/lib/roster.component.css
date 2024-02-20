@@ -1,0 +1,9 @@
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  width: 100%;
+  height: 50px;
+}

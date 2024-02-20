@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpException, Param, Post, Put, UsePipe
 import { ValidationPipe } from '../shared/pipes/validation.pipe';
 import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { User } from './user.decorator';
-import { IUserRO } from './user.interface';
+import { IUserRO, IUserStatsRO } from './user.interface';
 import { UserService } from './user.service';
 
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -21,6 +21,11 @@ export class UserController {
   @Put('user')
   async update(@User('id') userId: number, @Body('user') userData: UpdateUserDto) {
     return this.userService.update(userId, userData);
+  }
+
+  @Get('users')
+  async findAll(): Promise<IUserStatsRO[]> {
+    return await this.userService.findAllWithStats();
   }
 
   @UsePipes(new ValidationPipe())

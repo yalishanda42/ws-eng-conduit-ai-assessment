@@ -1,1 +1,9 @@
-<p>TODO</p>
+<div class="user-row" *ngFor="let user of users$ | async">
+  <img src="{{ user.image }}" />
+  <h2>{{ user.username }}</h2>
+  <p>Email: {{ user.email }}</p>
+  <p>Bio: {{ user.bio }}</p>
+  <p>Articles Count: {{ user.articlesCount }}</p>
+  <p>Followers Count: {{ user.followersCount }}</p>
+  <p>Followed Count: {{ user.followedCount }}</p>
+</div>
